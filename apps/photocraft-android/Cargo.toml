@@ -1,0 +1,39 @@
+[package]
+name = "photocraft-android"
+description = "PhotoCraft for Android: the shared egui app in a NativeActivity, with the system file picker behind Open and Save, and the S Pen's pressure, tilt and button"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[lib]
+name = "photocraft_android"
+crate-type = ["cdylib", "rlib"]
+
+# Android hands native code raw JNI pointers (`JavaVM`, the activity), and the Rust JNI wrappers
+# take them only through `unsafe` constructors. `unsafe_code` is `deny` here; only `jni_bridge.rs`
+# and the `android_main` export allow it, each at one named site. See AGENTS.md ("Android").
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+cognitive_complexity = "deny"
+too_many_arguments = "deny"
+wildcard_imports = "deny"
+dbg_macro = "warn"
+todo = "warn"
+
+[target.'cfg(target_os = "android")'.dependencies]
+photocraft-doc = { workspace = true }
+photocraft-codecs = { workspace = true }
+photocraft-engine = { workspace = true }
+photocraft-io = { workspace = true }
+photocraft-ui-egui = { workspace = true }
+eframe = { workspace = true, features = ["default_fonts", "wgpu", "android-native-activity", "links"] }
+egui = { workspace = true }
+log = { workspace = true }
+android-activity = { version = "0.6", features = ["native-activity"] }
+android_logger = "0.15"
+jni = "0.21"
+winit = { version = "0.30", default-features = false, features = ["android-native-activity"] }

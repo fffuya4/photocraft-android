@@ -8,19 +8,13 @@ impl PhotocraftApp {
     }
 
     /// Close this frame's stage record (`frame_stages`): keep it if it was slow, and hand it to
-    /// the stroke trace. `ui_ms` is this pass's UI build. A pass egui will run again
-    /// (`request_discard`, such as a sizing pass) leaves the record open, so a frame is one
-    /// record across all its passes.
-    pub(crate) fn finish_frame(&mut self, ctx: &egui::Context, ui_ms: f64) {
-        self.perf.stage.ui_ms += ui_ms;
-        self.perf.stage.stroking |= self.live_stroke.is_some();
-        if ctx.will_discard() {
-            return;
-        }
-        let stages = std::mem::take(&mut self.perf.stage);
+    /// the stroke trace. `ui_ms` is the UI build's time.
+    pub(crate) fn finish_frame(&mut self, ui_ms: f64) {
+        let mut stages = std::mem::take(&mut self.perf.stage);
+        stages.ui_ms = ui_ms;
         let stages = self.slow_frames.finish(stages, gpu_canvas::now_ms(), self.perf.gpu, self.perf.gpu_ms);
         let info = &self.perf.gpu_info;
-        self.stroke_trace.frame(&stages, stages.stroking, || {
+        self.stroke_trace.frame(&stages, self.live_stroke.is_some(), || {
             let gpu = format!("{} {}", info.backend, info.adapter).trim().to_string();
             if info.present.is_empty() { gpu } else { format!("{gpu}, {}", info.present) }
         });

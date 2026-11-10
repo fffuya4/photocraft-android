@@ -34,15 +34,12 @@ photocraft-codecs = { workspace = true }
 photocraft-psd = { workspace = true }
 egui = { workspace = true }
 egui_extras = { version = "0.37", default-features = false, features = ["svg"] }
-eframe = { workspace = true, features = ["wgpu", "accesskit", "clipboard"] }
+eframe = { workspace = true, features = ["wgpu", "clipboard"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 log = { workspace = true }
 # Display order of right-to-left labels (`bidi_text.rs`); already linked through usvg.
 unicode-bidi = "0.3"
-# Context-sensitive dotted/dotless I mapping for Azerbaijani and Turkish UI text.
-icu_casemap = "2.3"
-icu_locale_core = "2.3"
 base64 = "0.23"
 # Inflating the translation catalogs, stored deflated (build.rs); already linked through photocraft-io.
 flate2 = { workspace = true }
@@ -89,3 +86,8 @@ toml = "1"
 [[example]]
 name = "flat_open_bench"
 test = true
+
+# Screen-reader support (AccessKit). eframe offers it on Android only with GameActivity, and the
+# Android app runs in a NativeActivity, so Android builds leave it out.
+[target.'cfg(not(target_os = "android"))'.dependencies]
+eframe = { workspace = true, features = ["accesskit"] }

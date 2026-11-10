@@ -1,0 +1,66 @@
+# Builds the Android APK of PhotoCraft. For a fork: Actions → "Android APK" → Run workflow,
+# then download the artifact. (Upstream CI is shared; this file isn't part of that.)
+name: Android APK
+permissions:
+  contents: write
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish the APK as a release of this fork (what the launcher installs from)"
+        type: boolean
+        default: true
+  push:
+    tags: ["android-v*"]
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+      - uses: Swatinem/rust-cache@v2
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk --locked
+      - name: Install Android platform and build tools
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" "build-tools;34.0.0"
+      - name: Install NDK
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;27.2.12479018"
+      - name: Signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          # Android only installs an update signed with the same key as the app already installed,
+          # so releases must always be signed with the one key kept in this repository's secrets.
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.p12"
+            echo "KEYSTORE=$RUNNER_TEMP/release.p12" >> "$GITHUB_ENV"
+            echo "KEY_ALIAS=release" >> "$GITHUB_ENV"
+          elif [ "${{ github.event_name == 'workflow_dispatch' && inputs.publish }}" = "true" ]; then
+            echo "::error::Add the secrets ANDROID_KEYSTORE_B64 and ANDROID_KEYSTORE_PASS first (Settings, Secrets and variables, Actions): without them every build gets a new random key and Android refuses to update the app."
+            exit 1
+          fi
+      - name: Build
+        env:
+          ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/27.2.12479018
+          KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+        run: bash android/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: photocraft-android-arm64
+          path: android/build/photocraft-*-android-arm64.apk
+      - name: Publish release
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(tr -d '[:space:]' < android/VERSION)"
+          cd android/build
+          apk="photocraft-$version-android-arm64.apk"
+          sha256sum "$apk" > SHA256SUMS.txt
+          gh release create "v$version" "$apk" SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" \
+            --title "PhotoCraft $version (Android)" --notes "Android build of PhotoCraft $version." \
+            || gh release upload "v$version" "$apk" SHA256SUMS.txt --clobber --repo "$GITHUB_REPOSITORY"

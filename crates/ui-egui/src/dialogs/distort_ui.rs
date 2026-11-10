@@ -361,12 +361,10 @@ pub fn keys(app: &mut PhotocraftApp, ctx: &egui::Context) -> bool {
         return true;
     }
     if app.distort.select_mask.is_some() {
-        // Enter closes a Polygonal Lasso polygon, else OK; Esc ends a brush resize (with
-        // Control+Alt, its macOS gesture, still held too), else drops a polygon, else Cancel.
-        let resize_esc = |ctx: &egui::Context| ctx.input_mut(|i| i.consume_key(Modifiers::CTRL | Modifiers::ALT, Key::Escape));
+        // Enter closes a Polygonal Lasso polygon, else OK; Esc drops one, else Cancel.
         if enter(ctx) {
             crate::select_mask_ui::enter(app);
-        } else if esc(ctx) || (crate::select_mask_ui::resizing(app) && resize_esc(ctx)) {
+        } else if esc(ctx) {
             crate::select_mask_ui::escape(app);
         }
         return true;

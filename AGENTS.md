@@ -148,7 +148,6 @@ When parity rises, raise `FLOOR` in `crates/ui-egui/src/parity.rs` (never lower 
 cargo test -p <crates you touched>
 cargo clippy -p <crates> --all-targets -- -D warnings
 cargo xtask layers
-cargo xtask panel-commands  # if you touched ui-egui: click handlers dispatch command ids (rule 1)
 cargo xtask wasm            # if you touched L0–L6
 cargo xtask parity          # if you added commands; commit the regenerated docs/parity-checklist.md
 cargo test -p photocraft-engine --test panic_hunt -- --ignored   # if you added/changed commands: no panic on adversarial input (Rule 9)
@@ -212,3 +211,7 @@ If the field has a PSD equivalent, map it in `crates/io` too, and keep unknown P
 - Workflows in `.github/workflows/` call the shared workflows in [`storytold/craft-common-actions`](https://github.com/storytold/craft-common-actions) at `@main`, with their inputs and secrets. No other jobs: if no shared workflow does what's needed, it doesn't go here.
 - Don't add or change CI in a feature or fix PR. If the existing workflows can't build or test a change, link an existing craft-common-actions issue or PR, or open a new issue, or a PR only for a small fix that is safe for every app and does not increase CI time.
 - Some workflow files here still run their own jobs. Don't add to them. Moving a job into craft-common-actions is its own task, never part of another PR, and the job stays here until a shared workflow runs it.
+
+## Android exception to `unsafe_code = "forbid"`
+
+`apps/photocraft-android` may use `unsafe` besides `photocraft-tablet`: Android passes native code raw JNI pointers, and the JNI wrappers accept them only through `unsafe` constructors. The crate sets `unsafe_code = "deny"`; `jni_bridge.rs` and the `android_main` export allow it, each with a SAFETY comment. Keep new platform logic in Java (`android/java`) behind `FileBridge`'s string-in, string-out calls so this stays small. `third_party/winit` is a vendored copy of the pinned winit with two small Android additions (see its `PATCHES.md`).

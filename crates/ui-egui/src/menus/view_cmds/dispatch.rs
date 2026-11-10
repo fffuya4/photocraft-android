@@ -223,7 +223,6 @@ fn wraps(id: &str) -> bool {
     matches!(
         id,
         "file.openAs"
-            | "file.openAsSmartObject"
             | "file.openExrParts"
             | "file.saveACopy"
             | "file.placeEmbedded"

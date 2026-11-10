@@ -24,7 +24,7 @@ pub const SECTIONS: [(&str, &str); 18] = [
     ("plugIns", "Plugins"),
     ("type", "Type"),
     ("enhancedControls", "Enhanced Controls"),
-    ("rawDefaults", "RAW Defaults"),
+    ("rawDefaults", "Camera Raw Defaults"),
     ("integrations", "Integrations"),
 ];
 

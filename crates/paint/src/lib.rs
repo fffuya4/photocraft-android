@@ -25,7 +25,6 @@ pub mod dynamics;
 mod mip_cache;
 pub mod mixer;
 pub mod outline;
-mod pattern_cache;
 pub mod presets;
 pub mod procedural;
 pub mod render;
@@ -408,6 +407,3 @@ mod tests {
 
 #[cfg(test)]
 mod brush_tests;
-
-#[cfg(test)]
-mod smoothing_catch_up_default_tests;

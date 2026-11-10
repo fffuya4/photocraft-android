@@ -123,7 +123,6 @@ mod tests {
             command: "image.mode.indexedColor".into(),
             params: json!({"colors": colors}),
             k: 1,
-            tool_colors: ([0.0, 0.0, 0.0, 1.0], [1.0; 4]),
         }
     }
 

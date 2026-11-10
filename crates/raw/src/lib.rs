@@ -29,13 +29,12 @@
 //!   image area (the D800E, the ILCE-7).
 //!
 //! Decoded today: DNG (uncompressed, deflate, lossless-JPEG, lossy-JPEG and JPEG XL, strips and
-//! tiles, CFA and LinearRaw), CR2 (lossless JPEG with Canon slices, and sRAW / mRAW), uncompressed or
+//! tiles, CFA and LinearRaw), CR2 (lossless JPEG with Canon slices), uncompressed or
 //! lossless-JPEG TIFF/EP raws (NEF, ARW, PEF… when not vendor-compressed),
 //! Nikon compressed NEF (lossless and lossy), Sony compressed ARW (cRAW),
 //! Panasonic RW2 (RawFormat 5 packed and RawFormat 3/4 vendor-compressed),
-//! uncompressed Olympus ORF, uncompressed Fujifilm RAF (Bayer and
-//! X-Trans), and Hasselblad 3FR/FFF (the X2D II 100C's uncompressed 16-bit CFA;
-//! see [`crate::hasselblad`]). Everything else reports [`RawError::Unsupported`].
+//! uncompressed Olympus ORF and uncompressed Fujifilm RAF (Bayer and
+//! X-Trans). Everything else reports [`RawError::Unsupported`].
 //!
 //! The crate is standalone (no workspace dependencies), does no I/O, builds for
 //! `wasm32-unknown-unknown` and never panics on hostile input: sizes are
@@ -52,7 +51,6 @@ mod demosaic;
 mod develop;
 mod dng;
 mod error;
-mod hasselblad;
 mod jxl;
 mod ljpeg;
 mod look;
@@ -62,13 +60,11 @@ mod orf;
 mod par;
 mod preview;
 mod raf;
-mod rafc;
 mod rw2;
 mod saturation;
 mod sensor;
 mod sony;
 mod sony_metadata;
-mod sraw;
 mod tiff;
 mod tiffep;
 mod tone;
@@ -122,8 +118,6 @@ pub enum RawFormat {
     Rw2,
     /// Fujifilm RAF.
     Raf,
-    /// Hasselblad 3FR / FFF.
-    Fff,
     /// Another TIFF/EP raw.
     TiffEp,
 }
@@ -140,14 +134,13 @@ impl RawFormat {
             RawFormat::Orf => "ORF",
             RawFormat::Rw2 => "RW2",
             RawFormat::Raf => "RAF",
-            RawFormat::Fff => "3FR/FFF",
             RawFormat::TiffEp => "TIFF/EP raw",
         }
     }
 }
 
 /// File extensions of the raw formats this crate recognises.
-pub const EXTENSIONS: &[&str] = &["dng", "cr2", "cr3", "nef", "nrw", "arw", "srf", "sr2", "pef", "orf", "rw2", "raf", "3fr", "fff"];
+pub const EXTENSIONS: &[&str] = &["dng", "cr2", "cr3", "nef", "nrw", "arw", "srf", "sr2", "pef", "orf", "rw2", "raf"];
 
 /// Decompression-bomb guards, checked on header values before allocating
 /// (the same shape and defaults as `photocraft-codecs`' limits).
@@ -201,8 +194,6 @@ fn make_format(make: Option<&str>) -> RawFormat {
         RawFormat::Pef
     } else if m.starts_with("OLYMPUS") || m.starts_with("OM DIGITAL") {
         RawFormat::Orf
-    } else if m.starts_with("HASSELBLAD") {
-        RawFormat::Fff
     } else {
         RawFormat::TiffEp
     }
@@ -257,7 +248,6 @@ pub fn decode(bytes: &[u8], limits: &Limits) -> Result<Sensor, RawError> {
                 RawFormat::Cr2 => cr2::decode(&t, limits),
                 RawFormat::Rw2 => rw2::decode(&t, limits),
                 RawFormat::Orf => orf::decode(&t, limits),
-                RawFormat::Fff => hasselblad::decode(&t, limits),
                 f => tiffep::decode(&t, f, limits),
             }
         }

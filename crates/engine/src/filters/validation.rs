@@ -94,8 +94,7 @@ fn fields(id: &str) -> Option<&'static [(&'static str, Rule)]> {
             ("vertical", Number(f64::MIN, f64::MAX)),
             ("undefinedAreas", Choice("wrap|repeat|transparent")),
         ],
-        "filter.blur.average"
-        | "filter.blur.blur"
+        "filter.blur.blur"
         | "filter.blur.blurMore"
         | "filter.sharpen.sharpen"
         | "filter.sharpen.sharpenMore"

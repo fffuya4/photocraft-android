@@ -43,7 +43,6 @@
 pub mod abr;
 pub mod aco;
 pub mod act;
-pub mod animation;
 pub mod ase;
 pub mod asl;
 pub mod atn;

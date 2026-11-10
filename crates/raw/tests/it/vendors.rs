@@ -56,8 +56,7 @@ fn cr2_develops() {
 
 #[test]
 fn cr2_srgb_raw_is_unsupported() {
-    // A subsampled frame in a layout Canon sRAW does not use (two components, Y 2×1): patch the
-    // first component's sampling factors. Real sRAW / mRAW decodes (see `sraw.rs`).
+    // A subsampled (sRAW-style) frame: patch the first component's sampling factors.
     let mut b = cr2_spec(32, 8, 2, vec![]).build();
     let sof = b.windows(2).position(|w| w == [0xFF, 0xC3]).unwrap();
     b[sof + 11] = 0x21;

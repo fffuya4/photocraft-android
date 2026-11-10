@@ -1,6 +1,5 @@
 //! The crate's integration tests, linked into one test binary.
 
-mod animation;
 mod atn_contract;
 mod atn_v12;
 mod builder;
